@@ -55,7 +55,7 @@ ncrawl
 		# data.totalModules - total modules that are going to be ran
 		# data.totalTargets - total targets that are going to be scanned
 	after: (data) ->
-		# expected result is scan statistics or a banner
+		# expected result is scan statistics or a banner, cleanup etc
 		# ran after all scans are ran
 		# data.start - start local time in milliseconds
 		# data.finish - start finish time in milliseconds

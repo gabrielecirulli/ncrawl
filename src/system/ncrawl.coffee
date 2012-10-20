@@ -60,7 +60,6 @@ module.exports = (options, complete) ->
 				start: startTime
 				end: do Date.now
 				took: do Date.now - startTime
-		do complete
 
 	remainingScans = totalTargets
 	for i, target of parsedTargets
