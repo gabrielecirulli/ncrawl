@@ -50,6 +50,7 @@ ncrawl = require 'ncrawl'
 ncrawl
 	targets: [] # if a string is given then it goes through a string explode on the comma delimeter and ip ranges are parsed, if an array is given target parsing is bypassed and the array is used instead
 	modules: [] # array of modules that are to be ran, if array contains 'all', all other elements are ignored and all are allowed
+	# all of these are optional
 	before: ->
 		# ran before all scans are ran
 		# data.totalModules - total modules that are going to be ran
@@ -71,7 +72,15 @@ ncrawl
 		# data.eta - amount of time estimated until completion in milliseconds
 		# data.elapsed - amount of time elapsed in milliseconds
 	progressInterval: 0 # time in milliseconds that the progress function will be called, if undefined it's called after each scan
-	Reporter: class Reporter
+	info: ->
+		# arguments same as Reporter.info
+	identify: ->
+		# arguments same as Reporter.identify
+	result: ->
+		# arguments same as Reporter.result
+	finish: ->
+		# arguments same as Reporter.finish
+	Reporter: class Reporter # reporter, keeping scan state
 		# all of these are optional
 		info: (info) ->
 			# ran before modules start, after target info has been gathered

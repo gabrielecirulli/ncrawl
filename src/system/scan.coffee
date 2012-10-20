@@ -1,6 +1,7 @@
 async	= require 'async'
 dns		= require 'dns'
 net		= require 'net'
+_		= require 'underscore'
 
 modules	= require './modules'
 queue	= require './queue'
@@ -33,8 +34,11 @@ class Scan
 			@info.hostname = @target
 
 		@dns =>
-			@reporter.info @info if @reporter.info
+			@call 'info', @info
 			@add name, module for name, module of modules.modules
+	call: (name, args...) ->
+		@reporter[name].apply @reporter, args if _.isFunction @reporter[name]
+		@options[name].apply @options, args if _.isFunction @options[name]
 	dns: (finish) ->
 		next = =>
 			do @queueDone
@@ -80,7 +84,7 @@ class Scan
 	identify: (type) ->
 		@info.type = [] unless @info.type
 		@info.type.push type
-		@reporter.identify { type, @id } if @reporter.identify
+		@call 'identify', { type, @id }
 	add: (name, obj) ->
 		queue.add (finished) =>
 			start = do Date.now
@@ -96,13 +100,13 @@ class Scan
 				do finished
 				if not result.error or result.error and @options.errors
 					@results[name] = result
-					@reporter.result name, result if @reporter.result
+					@call 'result', name, result
 				else
 					delete @results[name]
 				do @finish if --@totalModules is 0
 	finish: ->
 		return do @done if Object.keys(@results).length is 0 and not @options.empty
-		@reporter.finish @info, @results, @id if @reporter.finish
+		@call 'finish', @info, @results, @id
 		do @done
 
 module.exports = Scan

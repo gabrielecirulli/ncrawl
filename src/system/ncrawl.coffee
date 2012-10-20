@@ -8,8 +8,7 @@ targets		= require './targets'
 queue		= require './queue'
 Scan		= require './scan'
 
-module.exports = (options, complete) ->
-	complete = options.finish if options.finish
+module.exports = (options) ->
 	modules.run options.modules
 	queue.maxOperations options.operations
 
@@ -27,8 +26,7 @@ module.exports = (options, complete) ->
 
 	options.error 1, 'No targets selected' if totalTargets is 0
 	options.error 2, 'No modules selected' if totalModules is 0
-
-	return do complete if totalTargets is 0 or totalModules is 0
+	return if totalTargets is 0 or totalModules is 0
 
 	options.before { totalTargets, totalModules } if options.before
 
@@ -60,12 +58,16 @@ module.exports = (options, complete) ->
 				took: do Date.now - startTime
 
 	remainingScans = totalTargets
-	for i, target of parsedTargets
-		do (i, target) ->
-			queue.add (finished) ->
-				scanReporter = new options.Reporter target, options
-				new Scan +i, target, options, scanReporter, finished, ->
-					completedScans++
-					currentProgress += increment
-					do progress if not options.progressInterval and options.progress
-					do finish if --remainingScans is 0
+	scanID = 0
+	options.scanTarget = (target, callback) ->
+		id = scanID++
+		queue.add (queueDone) ->
+			scanReporter = new options.Reporter target, options
+			new Scan id, target, options, scanReporter, queueDone, ->
+				do callback if callback
+				completedScans++
+				currentProgress += increment
+				do progress if not options.progressInterval and options.progress
+				do finish if --remainingScans is 0
+
+	options.scanTarget target for target in parsedTargets
