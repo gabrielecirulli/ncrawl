@@ -79,6 +79,11 @@ ncrawl
 			# info.hostname - if target was hostname then this value is the target otherwise it's the first dns resolved hostname
 			# info.ip - if target was ip then this value is the target otherwise it's the first dns resolved ip
 			# info.resolve - an object of all the resolved ips with an array of resolved hostnames for each ip
+			# info.mx - an array of mail exchange servers if a hostname was found, array contains objects with exchange, and priority
+			# info.txt - an array of text queries if a hostname was found
+			# info.srv - an array of service records if a hostname was found, array contains objects with weight, port, and name
+			# info.ns - an array of name servers if a hostname was found
+			# info.cname - an array of canonical name records if a hostname was found
 		identify: (type) ->
 			# ran when a piece of middleware detects that the target may be the specified type
 			# may be ran more than once depending on results

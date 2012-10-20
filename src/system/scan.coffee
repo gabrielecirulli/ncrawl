@@ -12,7 +12,17 @@ class Scan
 		@results = {}
 		@results[name] = error: true for name, module of modules.modules
 
-		@info = target: @target, id: @id
+		@info =
+			target: @target
+			id: @id
+			mx: []
+			txt: []
+			srv: []
+			ns: []
+			cname: []
+			resolve: {}
+			ip: null
+			hostname: null
 		if net.isIP @target
 			@info.isIP = true
 			@info.ip = @target
@@ -47,15 +57,25 @@ class Scan
 					do @queueDone
 					return do @finish
 				return do next unless @info.hostname
-				do callback
-			txt: (callback) ->
-				do callback
-			srv: (callback) ->
-				do callback
-			ns: (callback) ->
-				do callback
-			cname: (callback) ->
-				do callback
+				dns.resolveMx @info.hostname, (err, records) =>
+					@info.mx = records if records
+					do callback
+			txt: (callback) =>
+				dns.resolveTxt @info.hostname, (err, records) =>
+					@info.txt = records if records
+					do callback
+			srv: (callback) =>
+				dns.resolveSrv @info.hostname, (err, records) =>
+					@info.srv = records if records
+					do callback
+			ns: (callback) =>
+				dns.resolveNs @info.hostname, (err, records) =>
+					@info.ns = records if records
+					do callback
+			cname: (callback) =>
+				dns.resolveCname @info.hostname, (err, records) =>
+					@info.cname = records if records
+					do callback
 			next: next
 	identify: (type) ->
 		@info.type = [] unless @info.type

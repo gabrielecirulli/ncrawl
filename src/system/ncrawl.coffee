@@ -8,8 +8,6 @@ targets		= require './targets'
 queue		= require './queue'
 Scan		= require './scan'
 
-do process.stdin.resume
-
 module.exports = (options, complete) ->
 	complete = options.finish if options.finish
 	modules.run options.modules
