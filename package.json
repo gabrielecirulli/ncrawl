@@ -1,0 +1,25 @@
+{
+	"name": "Harbour",
+	"author": "Sebastian McKenzie <support@nodejitsu.com>",
+	"description": "network crawler",
+	"main": "./lib/system/ncrawl",
+	"bin": {
+		"ncrawl": "./lib/ncrawl"
+	},
+	"keywords": [
+		"crawler",
+		"security",
+		"network"
+	],
+	"version": "0.0.0",
+	"engines": { "node": ">=0.8.11" },
+	"dependencies" : {
+		"async":			"*",
+		"colors":			"*",
+		"ftp":				"*",
+		"request":			"*"
+	},
+	"devDependencies": {
+		"coffee-script":	"*"
+	}
+}

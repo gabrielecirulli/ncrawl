@@ -8,8 +8,10 @@ queue	= require './queue'
 class Scan
 	constructor: (@id, @target, @options, @reporter, @queueDone, @done) ->
 		@totalModules = do modules.amount
+		
 		@results = {}
 		@results[name] = error: true for name, module of modules.modules
+
 		@info = target: @target, id: @id
 		if net.isIP @target
 			@info.isIP = true
@@ -19,6 +21,7 @@ class Scan
 			@info.isIP = false
 			@info.ip = null
 			@info.hostname = @target
+
 		@dns =>
 			@reporter.info @info if @reporter.info
 			@add name, module for name, module of modules.modules
@@ -69,6 +72,7 @@ class Scan
 				data.id = @id
 				data.port = obj.port
 				data.module = name
+
 				do finished
 				if not data.error or data.error and @options.errors
 					@results[name] = data

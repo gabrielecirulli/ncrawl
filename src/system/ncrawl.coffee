@@ -18,7 +18,7 @@ module.exports = (options, complete) ->
 	reporter = require require.resolve "../reporters/#{options.reporter}" if _.isString reporter
 	do reporter.before if reporter.before
 
-	targets	= targets options.targets if _.isString options.targets
+	targets	= targets options.targets unless _.isArray options.targets
 	totalTargets = targets.length
 	totalModules = do modules.amount
 
