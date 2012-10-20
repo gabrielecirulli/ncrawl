@@ -68,7 +68,9 @@ ncrawl
 		# data.progress - float containing the progress out of 100
 		# data.totalScans - number of total scans
 		# data.compeltedScans - number of completed scans
-	progressInterval: # time in milliseconds that the progress function will be called, if undefined it's called after each scan
+		# data.eta - amount of time estimated until completion in milliseconds
+		# data.elapsed - amount of time elapsed in milliseconds
+	progressInterval: 0 # time in milliseconds that the progress function will be called, if undefined it's called after each scan
 	Reporter: class Reporter
 		# all of these are optional
 		info: (info) ->

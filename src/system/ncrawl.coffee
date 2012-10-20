@@ -43,11 +43,10 @@ module.exports = (options, complete) ->
 	progress = ->
 		return if completedScans is 0
 		elapsed = do Date.now - startTime
-		eta = ((elapsed * (totalTargets / completedScans - 1)) / 1000).toFixed 1
 		options.progress
 			progress: currentProgress
 			elapsed: elapsed
-			eta: eta
+			eta: elapsed * (totalTargets / completedScans - 1)
 			totalScans: totalTargets
 			completedScans: completedScans
 
@@ -56,11 +55,11 @@ module.exports = (options, complete) ->
 
 	finish = ->
 		clearInterval progressInterval
-		data =
-			start: startTime
-			end: do Date.now
-			took: do Date.now - startTime
-		options.after data if options.after
+		if options.after
+			options.after
+				start: startTime
+				end: do Date.now
+				took: do Date.now - startTime
 		do complete
 
 	remainingScans = totalTargets

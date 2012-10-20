@@ -28,5 +28,5 @@ exports.progress = (data) ->
 	bar = ''
 	bar += _s.repeat '=', length
 	bar += _s.repeat ' ', width - length
-	console.log "    progress [#{bar}] #{percent}% #{data.eta}s"
+	console.log "    progress [#{bar}] #{percent}% #{(data.eta / 1000).toFixed 1}s"
 	do console.log
