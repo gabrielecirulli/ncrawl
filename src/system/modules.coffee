@@ -1,7 +1,7 @@
 fs	= require 'fs'
 _	= require 'underscore'
 
-exports.modules = {}
+modules = exports.modules = {}
 exports.run = (enabled=['all']) ->
 	enabled = enabled.split ',' if _.isString enabled
 	modulesDir = "#{__dirname}/../modules"
@@ -9,8 +9,8 @@ exports.run = (enabled=['all']) ->
 		continue unless 'all' in enabled or module in enabled
 
 		moduleDir = "#{modulesDir}/#{module}"
-		exports.modules[module] = require require.resolve "#{moduleDir}/#{module}"
-		exports.modules[module].Module::middleware = middleware = {}
+		module = modules[module] = require require.resolve "#{moduleDir}/#{module}"
+		module.Module::middleware = middleware = {}
 
 		middlewareDir = "#{moduleDir}/middleware"
 		continue unless fs.existsSync middlewareDir

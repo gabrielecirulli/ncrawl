@@ -8,6 +8,8 @@ Network crawler
 $ npm install ncrawl
 ```
 
+or
+
 ```bash
 $ git clone git@github.com:sebmck/ncrawl.git ncrawl
 ```
@@ -38,6 +40,7 @@ $ ncrawl --help
     -t, --timeout [number]                    Module timeout in milliseconds [2000]
     -r, --reporter [string]                   Reporter to use [default]
     -m, --modules [comma delimetered string]  Only run specified modules [all]
+
 ```
 
 ## API ##
@@ -91,6 +94,9 @@ ncrawl
 			# result.id - scan id
 		finish: (info, results, id) ->
 			# ran after a scan has been completed with the target info, module results and the scan id
+			# info - see @info for details
+			# results - object of module results, key is module name, see @result for value details
+			# id - scan id
 ```
 
 ## License ##
