@@ -20,8 +20,13 @@ class Reporter
 
 exports.Reporter = Reporter
 
-exports.progressInterval = 10000
-exports.progress = (progress) ->
-	progress = Math.floor progress
-	console.log "Progress #{progress}% (#{100 - progress}%)"
+exports.progressInterval = 5000
+exports.progress = (data) ->
+	percent = Math.floor data.progress
+	width = 20
+	length = Math.round width * data.progress / 100
+	bar = ''
+	bar += _s.repeat '=', length
+	bar += _s.repeat ' ', width - length
+	console.log "    progress [#{bar}] #{percent}% #{data.eta}s"
 	do console.log

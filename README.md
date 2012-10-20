@@ -51,24 +51,23 @@ ncrawl
 	targets: [] # if a string is given then it goes through a string explode on the comma delimeter and ip ranges are parsed, if an array is given target parsing is bypassed and the array is used instead
 	modules: [] # array of modules that are to be ran, if array contains 'all', all other elements are ignored and all are allowed
 	before: ->
-		# expected result is banner or environment variables
-		# ran before all scans are ran
-	after: ->
-		# expected result is scan statistics or a banner
-		# ran after all scans are ran
-	start: (data) ->
 		# ran before all scans are ran
 		# data.totalModules - total modules that are going to be ran
 		# data.totalTargets - total targets that are going to be scanned
-	finish: ->
-		# expected result is cleanup
+	after: (data) ->
+		# expected result is scan statistics or a banner
 		# ran after all scans are ran
+		# data.start - start local time in milliseconds
+		# data.finish - start finish time in milliseconds
+		# data.took - total time taken in milliseconds
 	error: (code, msg) ->
 		# code 1 - msg no targets selected - ran when no targets are specified
 		# code 2 - msg no modules selected - ran when no modules are specified
-	progress: (progress) ->
+	progress: (data) ->
 		# ran after each scan or after every progressInterval
-		# progress - float containing the progress out of 100
+		# data.progress - float containing the progress out of 100
+		# data.totalScans - number of total scans
+		# data.compeltedScans - number of completed scans
 	progressInterval: # time in milliseconds that the progress function will be called, if undefined it's called after each scan
 	Reporter: class Reporter
 		# all of these are optional

@@ -18,6 +18,7 @@
 		"colors":				"*",
 		"commander":			"*",
 		"ftp":					"*",
+		"progress":				"*",
 		"request":				"*",
 		"underscore":			"*",
 		"underscore.string":	"*"
