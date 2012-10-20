@@ -6,18 +6,24 @@ class FTP
 		ftp = new FTPClient
 			host: @target
 			connTimeout: @options.timeout
+		result = error: true
+		timeout = setTimeout ->
+			do ftp.end
+		, @options.timeout * 2
 		ftp.on 'error', (err) ->
 			do ftp.end
-			callback error: err
 		ftp.on 'timeout', ->
 			do ftp.end
-			callback error: true
+		ftp.on 'close', ->
+			clearTimeout timeout
+			callback result
 		ftp.on 'connect', ->
 			ftp.auth (err) ->
-				do ftp.end
-				callback
+				result =
 					data:
 						Anonymous: if err then 'false' else 'true'
+				do ftp.end
+					
 		do ftp.connect
 
 exports.port = 21

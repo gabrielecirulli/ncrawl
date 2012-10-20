@@ -8,7 +8,7 @@ queue	= require './queue'
 class Scan
 	constructor: (@id, @target, @options, @reporter, @queueDone, @done) ->
 		@totalModules = do modules.amount
-		
+
 		@results = {}
 		@results[name] = error: true for name, module of modules.modules
 

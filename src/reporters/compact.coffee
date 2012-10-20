@@ -19,3 +19,9 @@ class Reporter
 		do console.log
 
 exports.Reporter = Reporter
+
+exports.progressInterval = 10000
+exports.progress = (progress) ->
+	progress = Math.floor progress
+	console.log "Progress #{progress}% (#{100 - progress}%)"
+	do console.log

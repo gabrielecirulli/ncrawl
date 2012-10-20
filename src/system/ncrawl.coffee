@@ -35,15 +35,25 @@ module.exports = (options, complete) ->
 
 	increment = (totalModules / totalTargets) * 100 / totalModules
 	progress = 0
+	lastUpdatedProgress = 0
+
+	if reporter.progressInterval
+		progressInterval = setInterval ->
+			reporter.progress progress
+		, reporter.progressInterval
+
+	finish = ->
+		clearInterval progressInterval
+		do reporter.after if reporter.after
+		do reporter.end if reporter.end
+		do complete
 
 	for i, target of targets
 		do (i, target) ->
 			queue.add (finished) ->
 				scanReporter = new reporter.Reporter target, options
 				new Scan +i, target, options, scanReporter, finished, ->
+					delete targets[i]
 					progress += increment
-					reporter.progress progress if reporter.progress
-					return unless --totalTargets is 0
-					do reporter.after if reporter.after
-					do reporter.end if reporter.end
-					do complete
+					reporter.progress progress if not reporter.progressInterval and reporter.progress
+					do finish if --totalTargets is 0
