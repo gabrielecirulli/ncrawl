@@ -16,6 +16,7 @@
 	"dependencies" : {
 		"async":				"*",
 		"colors":				"*",
+		"commander":			"*",
 		"ftp":					"*",
 		"request":				"*",
 		"underscore":			"*",

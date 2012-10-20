@@ -65,18 +65,18 @@ class Scan
 		queue.add (finished) =>
 			start = do Date.now
 			module = new obj.Module @target, @options, @identify.bind @
-			module.start (data={}) =>
-				data.finish = do Date.now
-				data.start = start
-				data.took = data.finish - data.start
-				data.id = @id
-				data.port = obj.port
-				data.module = name
+			module.start (result={}) =>
+				result.finish = do Date.now
+				result.start = start
+				result.took = result.finish - result.start
+				result.id = @id
+				result.port = obj.port
+				result.module = name
 
 				do finished
-				if not data.error or data.error and @options.errors
-					@results[name] = data
-					@reporter.result name, data if @reporter.result
+				if not result.error or result.error and @options.errors
+					@results[name] = result
+					@reporter.result name, result if @reporter.result
 				else
 					delete @results[name]
 				do @finish if --@totalModules is 0
