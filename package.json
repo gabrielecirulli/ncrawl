@@ -24,6 +24,8 @@
 		"underscore.string":	"*"
 	},
 	"devDependencies": {
-		"coffee-script":		"*"
+		"coffee-script":		"*",
+		"file":					"*",
+		"mkdirp":				"*"
 	}
 }
