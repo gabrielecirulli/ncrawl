@@ -1,17 +1,21 @@
 # ncrawl #
 
-Network crawler
+Network crawler capable of device identification and mass subnet-scanning. Automation and target generation to come!
 
 ## Installation ##
 
 ```bash
 $ npm install ncrawl
+$ ncrawl --help
 ```
 
 or
 
 ```bash
 $ git clone git@github.com:sebmck/ncrawl.git ncrawl
+$ cd ncrawl
+$ npm install
+$ ./ncrawl.sh --help
 ```
 
 ### Examples ###
@@ -43,6 +47,14 @@ $ ncrawl --help
 
 ```
 
+## Modules ##
+
+Current modules are:
+
+* **HTTP** using [request](https://github.com/mikeal/request)
+* **HTTPS** using [request](https://github.com/mikeal/request)
+* **FTP** using [node-ftp](https://github.com/mscdex/node-ftp)
+
 ## API ##
 
 ```coffeescript
@@ -51,7 +63,8 @@ ncrawl
 	targets: [] # if a string is given then it goes through a string explode on the comma delimeter and ip ranges are parsed, if an array is given target parsing is bypassed and the array is used instead
 	addTarget: # internal function, accepts a target and an optional completion callback that is called with the same arguments as Reporter.finish
 	# the following are ALL optional
-	modules: [] # array of modules that are to be ran, if array contains 'all', all other elements are ignored and all are allowed
+	ports: [] # an array or comma delimetered strings with ranges of additional ports you'd like scanned
+	modules: [] # array or comma delimetered string of modules that are to be ran, if array contains 'all', all other elements are ignored and all are allowed
 	before: ->
 		# ran before all scans are ran
 		# data.totalModules - total modules that are going to be ran
@@ -68,7 +81,7 @@ ncrawl
 		# target - parsed target id
 	error: (code, msg) ->
 		# code 1 - msg no targets selected - ran when no targets are specified
-		# code 2 - msg no modules selected - ran when no modules are specified
+		# code 2 - msg no modules and/or ports selected
 	progress: (data) ->
 		# ran after each scan or after every progressInterval
 		# data.progress - float containing the progress out of 100
@@ -115,6 +128,7 @@ ncrawl
 			# result.took - total time taken in milliseconds
 			# result.module - name of module
 			# result.id - scan id
+			# result.data - an object of data that the module middleware picked up
 		start: (id, target) ->
 			# ran after the scan has been taken out of the queue and started
 			# id - scan id

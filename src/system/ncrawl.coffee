@@ -5,28 +5,33 @@ _			= require 'underscore'
 commands	= require './commands'
 modules		= require './modules'
 targets		= require './targets'
-queue		= require './queue'
+Queue		= require './queue'
+ports		= require './ports'
 Scan		= require './scan'
 
 module.exports = (options) ->
-	modules.run options.modules
-	queue.maxOperations options.operations
+	commands.defaults options
+	parsedModules = modules options.modules
+	queue = new Queue options.operations
 
 	reporter = options.reporter
 	reporter = require require.resolve "../reporters/#{options.reporter}" if _.isString reporter
 	options = _.extend options, reporter
 
-	parsedTargets	= targets.run options.targets unless _.isArray options.targets
-	totalTargets 	= do targets.amount
-	totalModules 	= do modules.amount
+	options.ports	= ports options.ports unless _.isArray options.ports
+	parsedTargets	= targets options.targets unless _.isArray options.targets
+
+	totalTargets 	= parsedTargets.length
+	totalModules 	= Object.keys(parsedModules).length
+	totalPorts		= options.ports.length
 
 	unless options.error
 		options.error = (code, msg) ->
 			throw new Error msg
 
 	options.error 1, 'No targets selected' if totalTargets is 0
-	options.error 2, 'No modules selected' if totalModules is 0
-	return if totalTargets is 0 or totalModules is 0
+	options.error 2, 'No modules or ports selected' if totalModules is 0 and totalPorts is 0
+	return if totalTargets is 0 or totalModules is 0 and totalPorts is 0
 
 	options.before { totalTargets, totalModules } if options.before
 
@@ -60,17 +65,25 @@ module.exports = (options) ->
 			end: do Date.now
 			took: do Date.now - startTime
 
-	options.scanTarget = (target, callback) ->
+	scanTarget = options.scanTarget = (target, callback) ->
 		id = scanID++
 		remainingScans++
 		options.queue id, target if options.queue
 		queue.add (queueDone) ->
-			scanReporter = new options.Reporter target, options
-			new Scan id, target, options, scanReporter, queueDone, ->
-				callback @info, @results if callback
-				completedScans++
-				currentProgress += increment
-				do progress if not options.progressInterval and options.progress
-				do finish if --remainingScans is 0
+			new Scan
+				id: id
+				target: target
+				options: options
+				reporter: new options.Reporter target, options
+				queueDone: queueDone
+				totalModules: totalModules
+				modules: parsedModules
+				queue: queue
+				done: ->
+					callback @info, @results if callback
+					completedScans++
+					currentProgress += increment
+					do progress if not options.progressInterval and options.progress
+					do finish if --remainingScans is 0
 
-	options.scanTarget target for target in parsedTargets
+	scanTarget target for target in parsedTargets

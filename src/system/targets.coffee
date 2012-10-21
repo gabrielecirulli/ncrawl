@@ -2,12 +2,8 @@ util	= require './util'
 net		= require 'net'
 _		= require 'underscore'
 
-exports.targets = []
 
-exports.amount = ->
-	exports.targets.length
-
-exports.run = (raw='') ->
+module.exports = (raw='') ->
 	targets = []
 	push = (target) ->
 		target = do target.trim
@@ -17,8 +13,7 @@ exports.run = (raw='') ->
 		if split.length is 2 and net.isIPv4(split[0]) and net.isIPv4 split[1]
 			start = util.IPv4ToLong split[0]
 			finish = util.IPv4ToLong split[1]
-			until start > finish
-				push util.longToIPv4 start++
+			push util.longToIPv4 start++ until start > finish
 		else
 			push target
-	exports.targets = _.uniq targets
+	_.uniq targets
