@@ -18,8 +18,8 @@ module.exports = (options) ->
 	reporter = require require.resolve "../reporters/#{options.reporter}" if _.isString reporter
 	options = _.extend options, reporter
 
-	options.ports	= ports options.ports unless _.isArray options.ports
-	parsedTargets	= targets options.targets unless _.isArray options.targets
+	options.ports	= ports options.ports
+	parsedTargets	= targets options.targets
 
 	totalTargets 	= parsedTargets.length
 	totalModules 	= Object.keys(parsedModules).length

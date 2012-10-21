@@ -164,7 +164,6 @@ class Scan
 			delete @results[name]
 		do @finish if --@totalModules is 0
 	finish: ->
-		return do @done if Object.keys(@results).length is 0 and not @options.empty
 		@call 'finish', @id, @info, @results
 		do @done
 
