@@ -7,5 +7,6 @@ class HTTPS
 	start: (callback) ->
 		@http.start callback, 'https'
 
+exports.description = 'HTTPS module'
 exports.port = 443
 exports.Module = HTTPS

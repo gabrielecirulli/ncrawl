@@ -1,7 +1,8 @@
-async	= require 'async'
-dns		= require 'dns'
-net		= require 'net'
-_		= require 'underscore'
+services	= require './services'
+async		= require 'async'
+dns			= require 'dns'
+net			= require 'net'
+_			= require 'underscore'
 
 class Scan
 	constructor: (o) ->
@@ -108,8 +109,10 @@ class Scan
 		@queue.add (finished) =>
 			start = do Date.now
 			@checkPort port, (error) =>
-				@scanDone 'port',
+				info = services.getByPort port
+				@scanDone info.name or 'port',
 					port: port
+					data: port: port
 					error: error
 					start: start
 					finish: do Date.now
@@ -144,9 +147,8 @@ class Scan
 			for device, types of obj.identities
 				for check, values of types
 					continue unless result.data and data = result.data[check]
-					for val in values
-						reg = new RegExp val, 'i'
-						@identify device if reg.test data
+					reg = new RegExp "(#{values.join '|'}})", 'i'
+					@identify device if reg.test data
 
 			do finished
 			

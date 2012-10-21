@@ -3,6 +3,7 @@ _	= require 'underscore'
 module.exports = (raw='') ->
 	ports = []
 	push = (port) ->
+		port = do port.trim
 		port = +port
 		ports.push port if port >= 1 and not isNaN port
 	for port in raw.split ','

@@ -26,5 +26,6 @@ class FTP
 					
 		do ftp.connect
 
+exports.description = 'FTP module'
 exports.port = 21
 exports.Module = FTP

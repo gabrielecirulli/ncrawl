@@ -3,7 +3,7 @@ fs		= require 'fs'
 _		= require 'underscore'
 
 module.exports = (enabled=['all']) ->
-	enabled = enabled.split ',' if _.isString enabled
+	enabled = (do module.toLowerCase().trim for module in enabled.split ',') if _.isString enabled
 	modulesDir = "#{__dirname}/../modules"
 	modules = {}
 	for module in fs.readdirSync modulesDir

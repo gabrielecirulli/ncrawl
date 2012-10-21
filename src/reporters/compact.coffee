@@ -1,4 +1,5 @@
-_s = require 'underscore.string'
+_s	= require 'underscore.string'
+_	= require 'underscore'
 
 class Reporter
 	info: (@info) ->
@@ -15,6 +16,7 @@ class Reporter
 		alias += ' - ' if alias
 		console.log "   #{alias}#{name} - #{result.took}ms"[color]
 		for name, value of result.data
+			value = value.join ', ' if _.isArray value
 			console.log " > #{_s.capitalize name}: #{value}"
 		do console.log
 
