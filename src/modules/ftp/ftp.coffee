@@ -21,7 +21,7 @@ class FTP
 			ftp.auth (err) ->
 				result =
 					data:
-						Anonymous: if err then 'false' else 'true'
+						anonymous: if err then 'false' else 'true'
 				do ftp.end
 					
 		do ftp.connect

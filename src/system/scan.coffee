@@ -8,6 +8,7 @@ queue	= require './queue'
 
 class Scan
 	constructor: (@id, @target, @options, @reporter, @queueDone, @done) ->
+		@call 'start', @id, @target
 		@totalModules = do modules.amount
 
 		@results = {}
@@ -16,21 +17,21 @@ class Scan
 		@info =
 			target: @target
 			id: @id
+			type: []
 			mx: []
 			txt: []
 			srv: []
 			ns: []
 			cname: []
 			resolve: {}
+			isIP: false
 			ip: null
 			hostname: null
+			
 		if net.isIP @target
 			@info.isIP = true
 			@info.ip = @target
-			@info.hostname = null
 		else
-			@info.isIP = false
-			@info.ip = null
 			@info.hostname = @target
 
 		@dns =>
@@ -81,10 +82,9 @@ class Scan
 					@info.cname = records if records
 					do callback
 			next: next
-	identify: (type) ->
-		@info.type = [] unless @info.type
-		@info.type.push type
-		@call 'identify', { type, @id }
+	identify: (device) ->
+		@info.type.push device
+		@call 'identify', { device, @id }
 	add: (name, obj) ->
 		queue.add (finished) =>
 			start = do Date.now
@@ -96,6 +96,14 @@ class Scan
 				result.id = @id
 				result.port = obj.port
 				result.module = name
+				result.data = result.data or {}
+
+				for device, types of obj.identities
+					for check, values of types
+						continue unless data = result.data[check]
+						for val in values
+							reg = new RegExp val, 'i'
+							@identify device if reg.test data
 
 				do finished
 				if not result.error or result.error and @options.errors
@@ -106,7 +114,7 @@ class Scan
 				do @finish if --@totalModules is 0
 	finish: ->
 		return do @done if Object.keys(@results).length is 0 and not @options.empty
-		@call 'finish', @info, @results, @id
+		@call 'finish', @id, @info, @results
 		do @done
 
 module.exports = Scan

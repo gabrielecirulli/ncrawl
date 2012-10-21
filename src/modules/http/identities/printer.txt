@@ -1,0 +1,7 @@
+title LaserJet
+title Hewlett Packard
+title DocuPrint
+title DocuCentre
+title Web Image Monitor
+title Lexmark
+server KM-MFP-http

@@ -7,7 +7,7 @@ class Reporter
 		alias.push @info.ip if @info.ip
 		@alias = if alias.length is 0 then '' else alias.join ':'
 	identify: (data) ->
-		console.log "#{@alias} has been identified as #{data.type}".bold
+		console.log "#{@alias} has been identified as #{data.device}".bold
 		do console.log
 	result: (name, result) ->
 		color = if result.error then 'red' else 'green'

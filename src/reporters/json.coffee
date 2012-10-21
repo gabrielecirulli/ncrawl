@@ -1,5 +1,5 @@
 class JSONReporter
-	finish: (info, results, id) ->
+	finish: (id, info, results) ->
 		console.log JSON.stringify { info, results, id, event: 'results' }
 
 exports.Reporter = JSONReporter

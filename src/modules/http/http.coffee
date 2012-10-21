@@ -1,7 +1,7 @@
 request = require 'request'
 
 class HTTP
-	constructor: (@target, @options, @identify) ->
+	constructor: (@target, @options) ->
 	start: (callback, prefix='http') ->
 		request.get
 			url: "#{prefix}://#{@target}"
@@ -10,7 +10,7 @@ class HTTP
 		, (err, res, body='') =>
 			return callback error: err if err
 			data = {}
-			fn @identify, data, res, body for name, fn of @middleware
+			fn data, res, body for name, fn of exports.middleware
 			callback { data }
 
 exports.port = 80

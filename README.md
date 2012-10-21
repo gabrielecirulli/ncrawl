@@ -49,8 +49,9 @@ $ ncrawl --help
 ncrawl = require 'ncrawl'
 ncrawl
 	targets: [] # if a string is given then it goes through a string explode on the comma delimeter and ip ranges are parsed, if an array is given target parsing is bypassed and the array is used instead
+	addTarget: # internal function, accepts a target and an optional completion callback that is called with the same arguments as Reporter.finish
+	# the following are ALL optional
 	modules: [] # array of modules that are to be ran, if array contains 'all', all other elements are ignored and all are allowed
-	# all of these are optional
 	before: ->
 		# ran before all scans are ran
 		# data.totalModules - total modules that are going to be ran
@@ -61,6 +62,10 @@ ncrawl
 		# data.start - start local time in milliseconds
 		# data.finish - start finish time in milliseconds
 		# data.took - total time taken in milliseconds
+	queue: (id, target) ->
+		# ran after a scan is queued
+		# id - scan id
+		# target - parsed target id
 	error: (code, msg) ->
 		# code 1 - msg no targets selected - ran when no targets are specified
 		# code 2 - msg no modules selected - ran when no modules are specified
@@ -69,6 +74,7 @@ ncrawl
 		# data.progress - float containing the progress out of 100
 		# data.totalScans - number of total scans
 		# data.compeltedScans - number of completed scans
+		# data.remainingScans - number of remaining scans
 		# data.eta - amount of time estimated until completion in milliseconds
 		# data.elapsed - amount of time elapsed in milliseconds
 	progressInterval: 0 # time in milliseconds that the progress function will be called, if undefined it's called after each scan
@@ -78,10 +84,11 @@ ncrawl
 		# arguments same as Reporter.identify
 	result: ->
 		# arguments same as Reporter.result
+	start: ->
+		# arguments same as Reporter.start
 	finish: ->
 		# arguments same as Reporter.finish
 	Reporter: class Reporter # reporter, keeping scan state
-		# all of these are optional
 		info: (info) ->
 			# ran before modules start, after target info has been gathered
 			# info.isIP - whether or not the target was given to us as an ip
@@ -93,10 +100,11 @@ ncrawl
 			# info.srv - an array of service records if a hostname was found, array contains objects with weight, port, and name
 			# info.ns - an array of name servers if a hostname was found
 			# info.cname - an array of canonical name records if a hostname was found
-		identify: (type) ->
-			# ran when a piece of middleware detects that the target may be the specified type
+		identify: (data) ->
+			# ran when a piece of middleware detects that the target may be the specified device
 			# may be ran more than once depending on results
-			# type - expected results are fax, printer, nas, switch, embedded, camera
+			# data.device - expected results are fax, printer, nas, switch, embedded, camera
+			# data.id - scan id
 		result: (module, result) ->
 			# ran after a module has completed
 			# module - name of module
@@ -107,7 +115,11 @@ ncrawl
 			# result.took - total time taken in milliseconds
 			# result.module - name of module
 			# result.id - scan id
-		finish: (info, results, id) ->
+		start: (id, target) ->
+			# ran after the scan has been taken out of the queue and started
+			# id - scan id
+			# target - parsed target id
+		finish: (id, info, results) ->
 			# ran after a scan has been completed with the target info, module results and the scan id
 			# info - see @info for details
 			# results - object of module results, key is module name, see @result for value details

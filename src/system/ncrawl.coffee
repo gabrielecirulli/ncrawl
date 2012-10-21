@@ -30,11 +30,13 @@ module.exports = (options) ->
 
 	options.before { totalTargets, totalModules } if options.before
 
+	startTime = do Date.now
 	increment = (totalModules / totalTargets) * 100 / totalModules
 	currentProgress = 0
 	lastUpdatedProgress = 0
 	completedScans = 0
-	startTime = do Date.now
+	remainingScans = 0
+	scanID = 0
 
 	progress = ->
 		return if completedScans is 0
@@ -44,6 +46,7 @@ module.exports = (options) ->
 			elapsed: elapsed
 			eta: elapsed * (totalTargets / completedScans - 1)
 			totalScans: totalTargets
+			remainingScans: remainingScans
 			completedScans: completedScans
 
 	if options.progressInterval
@@ -51,20 +54,20 @@ module.exports = (options) ->
 
 	finish = ->
 		clearInterval progressInterval
-		if options.after
-			options.after
-				start: startTime
-				end: do Date.now
-				took: do Date.now - startTime
+		return unless options.after
+		options.after
+			start: startTime
+			end: do Date.now
+			took: do Date.now - startTime
 
-	remainingScans = totalTargets
-	scanID = 0
 	options.scanTarget = (target, callback) ->
 		id = scanID++
+		remainingScans++
+		options.queue id, target if options.queue
 		queue.add (queueDone) ->
 			scanReporter = new options.Reporter target, options
 			new Scan id, target, options, scanReporter, queueDone, ->
-				do callback if callback
+				callback @info, @results if callback
 				completedScans++
 				currentProgress += increment
 				do progress if not options.progressInterval and options.progress

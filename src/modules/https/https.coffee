@@ -2,8 +2,8 @@ HTTP = require '../http/http'
 
 class HTTPS
 	port: 443
-	constructor: (target, options, identify) ->
-		@http = new HTTP.Module target, options, identify
+	constructor: (target, options) ->
+		@http = new HTTP.Module target, options
 	start: (callback) ->
 		@http.start callback, 'https'
 
