@@ -17,6 +17,7 @@
 		"async":				"*",
 		"colors":				"*",
 		"commander":			"*",
+		"eventemitter2":		"*",
 		"ftp":					"*",
 		"progress":				"*",
 		"request":				"*",

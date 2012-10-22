@@ -6,7 +6,8 @@ module.exports = (raw='') ->
 	push = (port) ->
 		port = do port.trim
 		port = +port
-		ports.push port if port >= 1 and not isNaN port
+		return unless port >= 1 and not isNaN port
+		ports.push port
 	for port in raw
 		split = port.split '-'
 		if split.length is 2

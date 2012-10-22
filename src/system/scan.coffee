@@ -1,29 +1,45 @@
-services	= require './services'
-async		= require 'async'
-dns			= require 'dns'
-net			= require 'net'
-_			= require 'underscore'
+{EventEmitter2}	= require 'eventemitter2'
+services		= require './services'
+async			= require 'async'
+dns				= require 'dns'
+net				= require 'net'
+_				= require 'underscore'
 
-class Scan
+class Scan extends EventEmitter2
 	constructor: (o) ->
-		@id = o.id
-		@target = o.target
-		@options = o.options
-		@reporter = o.reporter
-		@queueDone = o.queueDone
-		@modules = o.modules
-		@done = o.done
-		@queue = o.queue
+		@[key] = value for key, value of o
 
-		@call 'start', @id, @target
-		@totalModules = o.totalModules
+		@completedModules = 0
+		@remainingModules = @totalModules
 
+		@currentProgress = 0
+		@lastUpdatedProgress = 0
+		@progressIncrement = @totalModules * 100 / @totalModules
+
+		@emit 'scan start', { @sessionID, @scanID, @target }
+
+		@startTime = do Date.now
 		@results = {}
 		@results[name] = error: true for name, module of @modules
 
+		@progressInterval = setInterval =>
+			return if @lastUpdatedProgress is @currentProgress
+			@lastUpdatedProgress = @currentProgress
+			elapsed = do Date.now - @startTime
+			@emit 'scan progress',
+				sessionID: @sessionID
+				scanID: @scanID
+				progress: @currentProgress
+				elapsed: elapsed
+				eta: elapsed * (@totalModules / @completedModules - 1)
+				remainingModules: @remainingModules
+				completedModules: @completedModules
+		, 2000
+
 		@info =
 			target: @target
-			id: @id
+			scanID: @scanID
+			sessionID: @sessionID
 			type: []
 			mx: []
 			txt: []
@@ -42,12 +58,9 @@ class Scan
 			@info.hostname = @target
 
 		@dns =>
-			@call 'info', @info
+			@emit 'target info', @info
 			@addModule name, module for name, module of @modules
-			@addPort port for port in @options.ports
-	call: (name, args...) ->
-		@reporter[name].apply @reporter, args if _.isFunction @reporter[name]
-		@options[name].apply @options, args if _.isFunction @options[name]
+			@addPort port for port in @ports
 	dns: (finish) ->
 		next = =>
 			do @queueDone
@@ -89,13 +102,14 @@ class Scan
 			next: next
 	identify: (device) ->
 		@info.type.push device
-		@call 'identify', { device, @id }
+		@emit 'target identify', { device, @scanID, @sessionID }
 	addModule: (name, obj) ->
 		@queue.add (finished) =>
 			start = do Date.now
 			@checkPort obj.port, (error) =>
+				return do finished if @stopped
 				if error
-					@scanDone name,
+					@moduleDone name,
 						module: name
 						port: obj.port
 						error: true
@@ -109,8 +123,9 @@ class Scan
 		@queue.add (finished) =>
 			start = do Date.now
 			@checkPort port, (error) =>
+				return do finished if @stopped
 				info = services.getByPort port
-				@scanDone info.name or 'port',
+				@moduleDone info.name or 'port',
 					port: port
 					data: port: port
 					error: error
@@ -119,6 +134,7 @@ class Scan
 					took: do Date.now - start
 				do finished
 	checkPort: (port, callback) ->
+		return do callback if @stopped
 		socket = new net.Socket
 		error = true
 
@@ -135,7 +151,13 @@ class Scan
 		socket.on 'error', ->
 		socket.on 'close', next
 		socket.connect port, @target
+	stop: ->
+		@stopped = true
+	cleanUp: (callback) ->
+		clearInterval @progressInterval
+		do callback if callback
 	startModule: (name, obj, finished) ->
+		return @cleanup finished if @stopped
 		start = do Date.now
 		module = new obj.Module @target, @options, @identify.bind @
 		module.start (result={}) =>
@@ -152,19 +174,28 @@ class Scan
 
 			do finished
 			
-			@scanDone name, result
-	scanDone: (name, result={}) ->
+			@moduleDone name, result
+	moduleDone: (name, result={}) ->
+		@currentProgress += @progressIncrement
+		@remainingModules--
+		@completedModules++
 		result.module = name
-		result.id = @id
+		result.scanID = @scanID
+		result.sessionID = @sessionID
 		result.data = result.data or {}
 		if not result.error or result.error and @options.errors
 			@results[name] = result
-			@call 'result', name, result
+			@emit 'module result', result
 		else
 			delete @results[name]
-		do @finish if --@totalModules is 0
-	finish: ->
-		@call 'finish', @id, @info, @results
-		do @done
+		return unless --@totalModules is 0
+		do @cleanUp
+		@finishTime = do Date.now
+		@emit 'scan finish',
+			info: @info
+			results: @results
+			start: @startTime
+			finish: @finishTime
+			took: @finishTime - @startTime
 
 module.exports = Scan

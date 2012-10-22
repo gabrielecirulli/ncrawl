@@ -8,7 +8,8 @@ module.exports = (raw='') ->
 	targets = []
 	push = (target) ->
 		target = do target.trim
-		targets.push target if target
+		return unless target
+		targets.push target
 	for target in raw
 		split = target.split '-'
 		if split.length is 2 and net.isIPv4(split[0]) and net.isIPv4 split[1]

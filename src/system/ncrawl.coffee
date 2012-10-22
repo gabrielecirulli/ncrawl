@@ -1,89 +1,126 @@
-colors		= require 'colors'
-fs			= require 'fs'
-_			= require 'underscore'
+{EventEmitter2}	= require 'eventemitter2'
+colors			= require 'colors'
+fs				= require 'fs'
+_s				= require 'underscore.string'
+_				= require 'underscore'
 
-commands	= require './commands'
-modules		= require './modules'
-targets		= require './targets'
-Queue		= require './queue'
-ports		= require './ports'
-Scan		= require './scan'
+commands		= require './commands'
+modules			= require './modules'
+targets			= require './targets'
+Queue			= require './queue'
+ports			= require './ports'
+Scan			= require './scan'
+
+totalSessions = 0
 
 module.exports = (options) ->
-	commands.defaults options
-	parsedModules = modules options.modules
-	queue = new Queue options.operations
+	class NCrawl extends EventEmitter2
+		constructor: (@options) ->
+			@sessionID = totalSessions++
 
-	reporter = options.reporter
-	reporter = require require.resolve "../reporters/#{options.reporter}" if _.isString reporter
-	options = _.extend options, reporter
+			commands.defaults @options
+			@queue = new Queue @options.operations
 
-	options.ports	= ports options.ports
-	parsedTargets	= targets options.targets
+			require("../reporters/#{@options.reporter}") @ if @options.reporter
 
-	totalTargets 	= parsedTargets.length
-	totalModules 	= Object.keys(parsedModules).length
-	totalPorts		= options.ports.length
+			@modules = modules @options.modules
+			@totalModules = Object.keys(@modules).length
+			@emit 'modules parsed', { @sessionID, @modules }
 
-	unless options.error
-		options.error = (code, msg) ->
-			throw new Error msg
+			@targets = targets @options.targets
+			@totalTargets = @targets.length
+			@emit 'targets parsed', { @sessionID, @targets }
 
-	options.error 1, 'No targets selected' if totalTargets is 0
-	options.error 2, 'No modules or ports selected' if totalModules is 0 and totalPorts is 0
-	return if totalTargets is 0 or totalModules is 0 and totalPorts is 0
+			@ports = ports @ports
+			@totalPorts = @ports.length
+			@emit 'ports parsed', { @sessionID, @ports }
 
-	options.before { totalTargets, totalModules } if options.before
+			@error 1, 'No targets selected' if @totalTargets is 0
+			@error 2, 'No modules or ports selected' if @totalModules is 0 and totalPorts is 0
+			return if @totalTargets is 0 or @totalModules is 0 and totalPorts is 0
 
-	startTime = do Date.now
-	increment = (totalModules / totalTargets) * 100 / totalModules
-	currentProgress = 0
-	lastUpdatedProgress = 0
-	completedScans = 0
-	remainingScans = 0
-	scanID = 0
+			@startTime = do Date.now
+			@completedScans = 0
+			@remainingScans = 0
+			@totalScans = 0
+			@results = []
+			@scans = {}
 
-	progress = ->
-		return if completedScans is 0
-		elapsed = do Date.now - startTime
-		options.progress
-			progress: currentProgress
-			elapsed: elapsed
-			eta: elapsed * (totalTargets / completedScans - 1)
-			totalScans: totalTargets
-			remainingScans: remainingScans
-			completedScans: completedScans
+			do @progress
+			@on 'stop scan', @stopScan
+			@on 'stop session', @stopSession
+			@on 'new scan', @newScan
+			@emit 'new scan', target for target in @targets
+			@emit 'session start', { @sessionID, @targets, @ports, @totalTargets, @totalModules }
+		stopSession: ->
+			do scan.stop for id, scan of @scans
+		stopScan: (scanID) =>
+			if @scans[scanID]
+				do @scans[scanID].stop
+			else
+				@error 3, 'Scan not found' ,false
+		newScan: (target, callback) ->
+			scanID = @totalScans++
+			@remainingScans++
+			@emit 'scan queued', { scanID, @sessionID, target }
+			@queue.add (queueDone) =>
+				@scans[scanID] = scan = new Scan
+					scanID: scanID
+					sessionID: @sessionID
+					target: target
+					options: @options
+					ports: @ports
+					queueDone: queueDone
+					totalModules: @totalModules
+					modules: @modules
+					queue: @queue
+				self = @
+				scan.onAny ->
+					listener.apply scan, arguments for listener in self.listeners @event
+				scan.on 'scan finish', (info, results) =>
+					@completedScans++
+					@currentProgress += @progressIncrement
+					@results.push { info, results }
+					return unless --@remainingScans is 0
+					@endTime = do Date.now
+					@emit 'session finish',
+						start: @startTime
+						end: @endTime
+						took: @endTime - @startTime
+						sessionID: @sessionID
+						results: @results
+		progress: ->
+			@progressIncrement = (@totalModules / @totalTargets) * 100 / @totalModules
+			@currentProgress = 0
+			lastUpdatedProgress = 0
 
-	if options.progressInterval
-		progressInterval = setInterval progress, options.progressInterval
+			progressInterval = setInterval =>
+				return if lastUpdatedProgress is @currentProgress
+				lastUpdatedProgress = @currentProgress
+				elapsed = do Date.now - @startTime
+				@emit 'session progress',
+					sessionID: @sessionID
+					progress: @currentProgress
+					elapsed: elapsed
+					eta: elapsed * (@totalTargets / @completedScans - 1)
+					totalScans: @totalScans
+					remainingScans: @remainingScans
+					completedScans: @completedScans
+			, 2000
 
-	finish = ->
-		clearInterval progressInterval
-		return unless options.after
-		options.after
-			start: startTime
-			end: do Date.now
-			took: do Date.now - startTime
+			@on 'session finish', ->
+				clearInterval progressInterval
+		error: (code, message, fatal=true) ->
+			err = new Error message
+			err.code = code
+			err.fatal = fatal
+			@emit 'error', err
+		enable: (key) ->
+			@set key, true
+		disable: (key) ->
+			@set key, false
+		set: (key, value) ->
+			key = _s.camelize key.replace ' ', '-'
+			@options[key] = value
 
-	scanTarget = options.scanTarget = (target, callback) ->
-		id = scanID++
-		remainingScans++
-		options.queue id, target if options.queue
-		queue.add (queueDone) ->
-			new Scan
-				id: id
-				target: target
-				options: options
-				reporter: new options.Reporter target, options
-				queueDone: queueDone
-				totalModules: totalModules
-				modules: parsedModules
-				queue: queue
-				done: ->
-					callback @info, @results if callback
-					completedScans++
-					currentProgress += increment
-					do progress if not options.progressInterval and options.progress
-					do finish if --remainingScans is 0
-
-	scanTarget target for target in parsedTargets
+	new NCrawl options

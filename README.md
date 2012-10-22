@@ -37,16 +37,27 @@ $ ncrawl --help
 
   Options:
 
-    -h, --help                 output usage information
-    -V, --version              output the version number
-    -T, --targets [string]     List of targets (192.168.2.1-192.168.5.255)
-    -e, --errors               Show errored modules
-    -h, --empty                Show empty targets
-    -o, --operations [number]  Amount of concurrent operations [512]
-    -t, --timeout [number]     Module timeout in milliseconds [2000]
-    -r, --reporter [string]    Reporter to use [default]
-    -m, --modules [string]     Only run specified modules - comma delimetered [all]
-    -p, --ports [string]       Additional ports youd like scanned - comma delimetered
+    -h, --help                  output usage information
+    -V, --version               output the version number
+    -T, --targets [string]      List of targets (192.168.2.1-192.168.5.255)
+    -m, --modules [string]      Only run specified modules - comma delimetered [all]
+    -p, --ports [string]        Additional ports youd like scanned - comma delimetered
+    -o, --operations [number]   Amount of concurrent operations [512]
+    -t, --timeout [number]      Module timeout in milliseconds [2000]
+    -r, --reporter [string]     Reporter to use [compact]
+    -e, --errors                Show errored modules
+    -h, --empty                 Show empty targets
+    --http-user-agent [string]  User agent to use for the HTTP module [Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)]
+
+  Modules:
+
+    https                       HTTPS module
+    http                        HTTP module
+    ftp                         FTP module
+
+  Examples:
+
+    $ ncrawl -T localhost
 
 ```
 
@@ -70,6 +81,7 @@ Current modules are:
 * MySQL module
 * Telnet module
 * Target generation
+* Convert API to events.
 
 ## License ##
 
